@@ -22,7 +22,7 @@ export class LoginPage {
     private alertController: AlertController
   ) {
     this.loginForm = this.formBuilder.group({
-      username: ['', [Validators.required, Validators.minLength(4)]],
+      username: ['', [Validators.required, Validators.minLength(3)]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
@@ -41,6 +41,7 @@ export class LoginPage {
           this.router.navigate(['/home']);
         },
         error: async (error) => {
+            console.log(error);
           await loading.dismiss();
           const alert = await this.alertController.create({
             header: 'Error',

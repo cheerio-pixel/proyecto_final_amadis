@@ -1,0 +1,101 @@
+<!-- src/app/pages/home/home.page.html -->
+<ion-header>
+  <ion-toolbar>
+    <ion-title>UASD App</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="logout()">
+        <ion-icon slot="icon-only" name="log-out"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <!-- User Profile Section -->
+  <div class="profile-section" *ngIf="user">
+    <div class="profile-header">
+      <div class="avatar">
+        <ion-icon name="person-circle"></ion-icon>
+      </div>
+      <div class="user-info">
+        <h2>{{ user.nombre }} {{ user.apellido }}</h2>
+        <p>{{ user.email }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <ion-grid class="stats-grid">
+    <ion-row>
+      <ion-col size="6">
+        <ion-card class="stat-card">
+          <ion-card-content>
+            <ion-icon name="school"></ion-icon>
+            <h3>Semestre Actual</h3>
+            <p>2024-1</p>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+      <ion-col size="6">
+        <ion-card class="stat-card">
+          <ion-card-content>
+            <ion-icon name="star"></ion-icon>
+            <h3>Índice</h3>
+            <p>3.85</p>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <!-- Menu Grid -->
+  <div class="menu-grid">
+    <ion-card 
+      *ngFor="let item of menuItems" 
+      class="menu-card"
+      (click)="navigateTo(item.route)">
+      <ion-card-content>
+        <div class="icon-container" [style.background-color]="'var(--ion-color-' + item.color + '-tint)'">
+          <ion-icon 
+            [name]="item.icon" 
+            [style.color]="'var(--ion-color-' + item.color + ')'">
+          </ion-icon>
+        </div>
+        <h3>{{ item.title }}</h3>
+        <ion-badge 
+          *ngIf="item.badge" 
+          [color]="item.color">
+          {{ item.badge }}
+        </ion-badge>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Quick Access Section -->
+  <div class="quick-access">
+    <h3 class="section-title">Acceso Rápido</h3>
+    <ion-list>
+      <ion-item button detail="true" lines="full" routerLink="/horario-actual">
+        <ion-icon name="time-outline" slot="start" color="primary"></ion-icon>
+        <ion-label>
+          <h3>Horario de Hoy</h3>
+          <p>Ver clases del día</p>
+        </ion-label>
+      </ion-item>
+      <ion-item button detail="true" lines="full" routerLink="/calificaciones">
+        <ion-icon name="school-outline" slot="start" color="secondary"></ion-icon>
+        <ion-label>
+          <h3>Calificaciones</h3>
+          <p>Ver notas recientes</p>
+        </ion-label>
+      </ion-item>
+      <ion-item button detail="true" lines="full" routerLink="/proximos-eventos">
+        <ion-icon name="calendar-outline" slot="start" color="tertiary"></ion-icon>
+        <ion-label>
+          <h3>Próximos Eventos</h3>
+          <p>Actividades pendientes</p>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  </div>
+</ion-content>

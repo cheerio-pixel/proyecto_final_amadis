@@ -1,0 +1,95 @@
+<!-- src/app/pages/news/news.page.html -->
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>
+      Noticias UASD
+    </ion-title>
+  </ion-toolbar>
+
+  <!-- Category Filter -->
+  <ion-toolbar>
+    <ion-segment [value]="selectedCategory" (ionChange)="filterNewsByCategory($event.detail.value!.toString())" scrollable>
+      <ion-segment-button value="all">
+        <ion-label>Todas</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="académico">
+        <ion-label>Académico</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="cultura">
+        <ion-label>Cultura</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="deportes">
+        <ion-label>Deportes</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="investigación">
+        <ion-label>Investigación</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Pull to refresh -->
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content
+      pullingIcon="chevron-down-circle-outline"
+      pullingText="Desliza para actualizar"
+      refreshingSpinner="circles"
+      refreshingText="Actualizando...">
+    </ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Error State -->
+  <ion-item *ngIf="error" lines="none" class="error-message">
+    <ion-icon name="alert-circle" slot="start" color="danger"></ion-icon>
+    <ion-label color="danger">{{ error }}</ion-label>
+  </ion-item>
+
+  <!-- News List -->
+  <ion-list *ngIf="!error">
+    <ion-card *ngFor="let item of getFilteredNews()" class="news-card">
+      <!-- Image -->
+      <img *ngIf="item.imageUrl" [src]="item.imageUrl" [alt]="item.title"/>
+      
+      <!-- Content -->
+      <ion-card-header>
+        <ion-card-subtitle>
+          <ion-chip [color]="item.category === 'académico' ? 'primary' : 
+                            item.category === 'cultura' ? 'secondary' : 
+                            item.category === 'deportes' ? 'tertiary' : 'success'">
+            <ion-label>{{ item.category }}</ion-label>
+          </ion-chip>
+          <span class="news-date">{{ formatDate(item.date) }}</span>
+        </ion-card-subtitle>
+        <ion-card-title>{{ item.title }}</ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+        <p>{{ item.description }}</p>
+        
+        <!-- Read More Button -->
+        <ion-button *ngIf="item.url" 
+                    fill="clear" 
+                    [href]="item.url" 
+                    target="_blank"
+                    class="read-more-btn">
+          Leer más
+          <ion-icon name="arrow-forward" slot="end"></ion-icon>
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </ion-list>
+
+  <!-- Empty State -->
+  <div *ngIf="!error && getFilteredNews().length === 0" class="empty-state">
+    <ion-icon name="newspaper-outline"></ion-icon>
+    <h3>No hay noticias disponibles</h3>
+    <p>No se encontraron noticias en esta categoría</p>
+    <ion-button (click)="loadNews()" fill="clear">
+      Intentar nuevamente
+    </ion-button>
+  </div>
+</ion-content>

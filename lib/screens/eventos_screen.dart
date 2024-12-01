@@ -33,9 +33,10 @@ class _EventosScreenState extends State<EventosScreen> {
 
   Future<void> _openMap(String coordinates) async {
     final url = 'https://www.google.com/maps/search/?api=1&query=$coordinates';
-    if (await canLaunchUrl(Uri.parse(url))) {
+
+    try {
       await launchUrl(Uri.parse(url));
-    } else {
+    } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('No se pudo abrir el mapa')),

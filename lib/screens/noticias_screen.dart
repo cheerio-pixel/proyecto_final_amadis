@@ -31,10 +31,9 @@ class _NoticiasScreenState extends State<NoticiasScreen> {
   }
 
   Future<void> _launchUrl(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else {
+    try {
+      await launchUrl(Uri.parse(url));
+    } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('No se pudo abrir la noticia')),

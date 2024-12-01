@@ -33,9 +33,10 @@ class _VideosScreenState extends State<VideosScreen> {
 
   Future<void> _openYouTubeVideo(String videoId) async {
     final url = 'https://youtu.be/$videoId';
-    if (await canLaunchUrl(Uri.parse(url))) {
+
+    try {
       await launchUrl(Uri.parse(url));
-    } else {
+    } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('No se pudo abrir el video')),

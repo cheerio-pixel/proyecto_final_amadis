@@ -3,6 +3,7 @@ import 'package:draft1/database/database_helper.dart';
 import 'package:draft1/screens/deudas_screen.dart';
 import 'package:draft1/screens/eventos_screen.dart';
 import 'package:draft1/screens/noticias_screen.dart';
+import 'package:draft1/screens/preseleccion_screen.dart';
 import 'package:draft1/screens/tareas_screen.dart';
 import 'package:draft1/screens/videos_screen.dart';
 import 'package:draft1/services/api_service.dart';
@@ -59,6 +60,7 @@ class MainApp extends StatelessWidget {
           '/videos': (context) => const VideosScreen(),
           '/deuda': (context) => const DeudasScreen(),
           '/tareas': (context) => const TareasScreen(),
+          '/preseleccion': (context) => const PreseleccionScreen(),
         },
       ),
     );

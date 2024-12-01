@@ -1,8 +1,12 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:draft1/database/database_helper.dart';
 import 'package:draft1/models/deuda.dart';
 import 'package:draft1/models/evento.dart';
+import 'package:draft1/models/materia_disponible.dart';
 import 'package:draft1/models/noticia.dart';
+import 'package:draft1/models/preseleccion.dart';
 import 'package:draft1/models/tarea.dart';
 import 'package:draft1/models/user.dart';
 import 'package:draft1/models/video.dart';
@@ -190,31 +194,99 @@ class ApiService {
     }
   }
 
-Future<List<Tarea>> getTareas() async {
-  try {
-    final db = DatabaseHelper.instance;
-    final shouldRefresh = await db.shouldRefreshTareas();
+  Future<List<Tarea>> getTareas() async {
+    try {
+      final db = DatabaseHelper.instance;
+      final shouldRefresh = await db.shouldRefreshTareas();
 
-    if (!shouldRefresh) {
-      return await db.getTareas();
-    }
-
-    final response = await _dio.get('$baseUrl/tareas');
-    if (response.statusCode == 200) {
-      final List<dynamic> tareasJson = response.data;
-      final tareas = tareasJson.map((json) => Tarea.fromJson(json)).toList();
-      
-      if (tareas.isNotEmpty) {
-        await db.insertTareas(tareas);
+      if (!shouldRefresh) {
+        return await db.getTareas();
       }
-      
-      return tareas;
-    }
 
-    return await db.getTareas();
-  } catch (e) {
-    print('Error getting tareas: $e');
-    return await DatabaseHelper.instance.getTareas();
+      final response = await _dio.get('$baseUrl/tareas');
+      if (response.statusCode == 200) {
+        final List<dynamic> tareasJson = response.data;
+        final tareas = tareasJson.map((json) => Tarea.fromJson(json)).toList();
+
+        if (tareas.isNotEmpty) {
+          await db.insertTareas(tareas);
+        }
+
+        return tareas;
+      }
+
+      return await db.getTareas();
+    } catch (e) {
+      print('Error getting tareas: $e');
+      return await DatabaseHelper.instance.getTareas();
+    }
   }
-}
+
+  Future<List<MateriaDisponible>> getMateriasDisponibles() async {
+    try {
+      final response = await _dio.get('$baseUrl/materias_disponibles');
+      if (response.statusCode == 200) {
+        final List<dynamic> materiasJson = response.data;
+        return materiasJson
+            .map((json) => MateriaDisponible.fromJson(json))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      print('Error getting materias disponibles: $e');
+      return [];
+    }
+  }
+
+  Future<String?> preseleccionarMateria(String codigo) async {
+    try {
+      final response = await _dio.post(
+        '$baseUrl/preseleccionar_materia',
+        data: jsonEncode(codigo),
+        options: Options(
+          contentType: Headers.jsonContentType,
+        ),
+      );
+      return !response.data['success'] ? response.data['error'] : null;
+    } catch (e) {
+      print('Error preseleccionando materia: $e');
+      if (e is DioException) {
+        print('Response data: ${e.response}');
+        print('Response headers: ${e.response?.headers}');
+      }
+      return "Error preseleccionando materia.";
+    }
+  }
+
+  Future<String?> cancelarPreseleccion(String codigo) async {
+    try {
+      final response = await _dio.post(
+        '$baseUrl/cancelar_preseleccion_materia',
+        data: jsonEncode(codigo),
+        options: Options(
+          contentType: Headers.jsonContentType,
+        ),
+      );
+      return !response.data['success'] ? response.data['error'] : null;
+    } catch (e) {
+      print('Error cancelando preselección: $e');
+      return "Error cancelando preselección.";
+    }
+  }
+
+  Future<List<Preseleccion>> getPreselecciones() async {
+    try {
+      final response = await _dio.get('$baseUrl/ver_preseleccion');
+      if (response.statusCode == 200 && response.data['success']) {
+        final List<dynamic> preseleccionesJson = response.data['data'];
+        return preseleccionesJson
+            .map((json) => Preseleccion.fromJson(json))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      print('Error getting preselecciones: $e');
+      return [];
+    }
+  }
 }

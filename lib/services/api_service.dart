@@ -7,7 +7,9 @@ import 'package:draft1/models/evento.dart';
 import 'package:draft1/models/materia_disponible.dart';
 import 'package:draft1/models/noticia.dart';
 import 'package:draft1/models/preseleccion.dart';
+import 'package:draft1/models/solicitud.dart';
 import 'package:draft1/models/tarea.dart';
+import 'package:draft1/models/tipo_solicitud.dart';
 import 'package:draft1/models/user.dart';
 import 'package:draft1/models/video.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -287,6 +289,63 @@ class ApiService {
     } catch (e) {
       print('Error getting preselecciones: $e');
       return [];
+    }
+  }
+
+  Future<List<TipoSolicitud>> getTiposSolicitudes() async {
+    try {
+      final response = await _dio.get('$baseUrl/tipos_solicitudes');
+      if (response.statusCode == 200 && response.data['success']) {
+        final List<dynamic> tiposJson = response.data['data'];
+        return tiposJson.map((json) => TipoSolicitud.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      print('Error getting tipos solicitudes: $e');
+      return [];
+    }
+  }
+
+  Future<List<Solicitud>> getMisSolicitudes() async {
+    try {
+      final response = await _dio.get('$baseUrl/mis_solicitudes');
+      if (response.statusCode == 200 && response.data['success']) {
+        final List<dynamic> solicitudesJson = response.data['data'];
+        return solicitudesJson.map((json) => Solicitud.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      print('Error getting solicitudes: $e');
+      return [];
+    }
+  }
+
+  Future<bool> crearSolicitud(String tipo, String descripcion) async {
+    try {
+      final response = await _dio.post(
+        '$baseUrl/crear_solicitud',
+        data: {
+          'tipo': tipo,
+          'descripcion': descripcion,
+        },
+      );
+      return response.data['success'] ?? false;
+    } catch (e) {
+      print('Error creando solicitud: $e');
+      return false;
+    }
+  }
+
+  Future<bool> cancelarSolicitud(int id) async {
+    try {
+      final response = await _dio.post(
+        '$baseUrl/cancelar_solicitud',
+        data: jsonEncode(id),
+      );
+      return response.data['success'] ?? false;
+    } catch (e) {
+      print('Error cancelando solicitud: $e');
+      return false;
     }
   }
 }

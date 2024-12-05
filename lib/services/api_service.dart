@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:draft1/database/database_helper.dart';
 import 'package:draft1/models/deuda.dart';
 import 'package:draft1/models/evento.dart';
+import 'package:draft1/models/horario.dart';
 import 'package:draft1/models/materia_disponible.dart';
 import 'package:draft1/models/noticia.dart';
 import 'package:draft1/models/preseleccion.dart';
@@ -348,4 +349,33 @@ class ApiService {
       return false;
     }
   }
+
+  Future<List<Horario>> getHorario() async {
+    try {
+      final db = DatabaseHelper.instance;
+      final shouldRefresh = await db.shouldRefreshHorario();
+
+      if (!shouldRefresh) {
+        return await db.getHorarios();
+      }
+
+      final response = await _dio.get('$baseUrl/horarios');
+      if (response.statusCode == 200) {
+        final List<dynamic> horarioJson = response.data;
+        final horarios =
+            horarioJson.map((json) => Horario.fromJson(json)).toList();
+
+        if (horarios.isNotEmpty) {
+          await db.insertHorarios(horarios);
+        }
+
+        return horarios;
+      }
+
+      return await db.getHorarios();
+    } catch (e) {
+      print('Error getting horario: $e');
+      return await DatabaseHelper.instance.getHorarios();
+    }
+ }
 }

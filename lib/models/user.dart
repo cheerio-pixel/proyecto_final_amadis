@@ -26,7 +26,6 @@ class User {
   Map<String, dynamic> toJson() => _$UserToJson(this);
 }
 
-// lib/models/login_data.dart
 @JsonSerializable()
 class LoginData {
   final String? username;
@@ -38,7 +37,6 @@ class LoginData {
   Map<String, dynamic> toJson() => _$LoginDataToJson(this);
 }
 
-// lib/models/password_reset_data.dart
 @JsonSerializable()
 class PasswordResetData {
   final String? oldPassword;

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:draft1/models/deuda.dart';
 import 'package:draft1/models/evento.dart';
+import 'package:draft1/models/horario.dart';
 import 'package:draft1/models/tarea.dart';
 import 'package:draft1/models/video.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -10,7 +11,7 @@ import '../models/noticia.dart';
 
 class DatabaseHelper {
   static const _databaseName = "UasdApp.db";
-  static const _databaseVersion = 1;
+  static const _databaseVersion = 2;
 
   DatabaseHelper._privateConstructor();
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
@@ -35,7 +36,6 @@ class DatabaseHelper {
   Future<Database> _initDatabase() async {
     final documentsDirectory = await getApplicationDocumentsDirectory();
     final path = join(documentsDirectory.path, _databaseName);
-    print(path);
 
     // Ensure the directory exists
     await Directory(dirname(path)).create(recursive: true);
@@ -44,7 +44,28 @@ class DatabaseHelper {
       path,
       version: _databaseVersion,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await _createHorarioTable(db);
+    }
+  }
+
+  Future<void> _createHorarioTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE horario (
+        id INTEGER PRIMARY KEY,
+        usuario_id INTEGER NOT NULL,
+        materia TEXT NOT NULL,
+        aula TEXT NOT NULL,
+        fecha_hora INTEGER NOT NULL,
+        ubicacion TEXT NOT NULL,
+        timestamp INTEGER NOT NULL
+      )
+    ''');
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -91,7 +112,7 @@ class DatabaseHelper {
   )
 ''');
 
-await db.execute('''
+    await db.execute('''
   CREATE TABLE tareas (
     id INTEGER PRIMARY KEY,
     usuario_id INTEGER NOT NULL,
@@ -102,6 +123,8 @@ await db.execute('''
     timestamp INTEGER NOT NULL
   )
 ''');
+
+    await _createHorarioTable(db);
   }
 
   Future<int> insertNoticia(Noticia noticia) async {
@@ -348,62 +371,119 @@ await db.execute('''
 
     final lastUpdate =
         DateTime.fromMillisecondsSinceEpoch(result.first['timestamp'] as int);
-   return DateTime.now().difference(lastUpdate).inMinutes > 15;
+    return DateTime.now().difference(lastUpdate).inMinutes > 15;
   }
 
-Future<void> insertTareas(List<Tarea> tareas) async {
-  final db = await database;
-  await db.transaction((txn) async {
-    await txn.delete('tareas');
-    
-    for (var tarea in tareas) {
-      await txn.insert(
-        'tareas',
-        {
-          'id': tarea.id,
-          'usuario_id': tarea.usuarioId,
-          'titulo': tarea.titulo,
-          'descripcion': tarea.descripcion,
-          'fecha_vencimiento': tarea.fechaVencimiento.millisecondsSinceEpoch,
-          'completada': tarea.completada ? 1 : 0,
-          'timestamp': DateTime.now().millisecondsSinceEpoch,
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    }
-  });
-}
+  Future<void> insertTareas(List<Tarea> tareas) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      await txn.delete('tareas');
 
-Future<List<Tarea>> getTareas() async {
-  final db = await database;
-  final List<Map<String, dynamic>> maps = await db.query(
-    'tareas',
-    orderBy: 'fecha_vencimiento ASC',
-  );
+      for (var tarea in tareas) {
+        await txn.insert(
+          'tareas',
+          {
+            'id': tarea.id,
+            'usuario_id': tarea.usuarioId,
+            'titulo': tarea.titulo,
+            'descripcion': tarea.descripcion,
+            'fecha_vencimiento': tarea.fechaVencimiento.millisecondsSinceEpoch,
+            'completada': tarea.completada ? 1 : 0,
+            'timestamp': DateTime.now().millisecondsSinceEpoch,
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+    });
+  }
 
-  return List.generate(maps.length, (i) {
-    return Tarea(
-      id: maps[i]['id'] as int,
-      usuarioId: maps[i]['usuario_id'] as int,
-      titulo: maps[i]['titulo'] as String,
-      descripcion: maps[i]['descripcion'] as String,
-      fechaVencimiento: DateTime.fromMillisecondsSinceEpoch(
-        maps[i]['fecha_vencimiento'] as int,
-      ),
-      completada: (maps[i]['completada'] as int) == 1,
+  Future<List<Tarea>> getTareas() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'tareas',
+      orderBy: 'fecha_vencimiento ASC',
     );
-  });
-}
 
-Future<bool> shouldRefreshTareas() async {
-  final db = await database;
-  final List<Map<String, dynamic>> result = await db.rawQuery('''
+    return List.generate(maps.length, (i) {
+      return Tarea(
+        id: maps[i]['id'] as int,
+        usuarioId: maps[i]['usuario_id'] as int,
+        titulo: maps[i]['titulo'] as String,
+        descripcion: maps[i]['descripcion'] as String,
+        fechaVencimiento: DateTime.fromMillisecondsSinceEpoch(
+          maps[i]['fecha_vencimiento'] as int,
+        ),
+        completada: (maps[i]['completada'] as int) == 1,
+      );
+    });
+  }
+
+  Future<bool> shouldRefreshTareas() async {
+    final db = await database;
+    final List<Map<String, dynamic>> result = await db.rawQuery('''
     SELECT timestamp FROM tareas ORDER BY timestamp DESC LIMIT 1
   ''');
-  
-  if (result.isEmpty) return true;
-  
-  final lastUpdate = DateTime.fromMillisecondsSinceEpoch(result.first['timestamp'] as int);
-  return DateTime.now().difference(lastUpdate).inMinutes > 15;
-}
+
+    if (result.isEmpty) return true;
+
+    final lastUpdate =
+        DateTime.fromMillisecondsSinceEpoch(result.first['timestamp'] as int);
+    return DateTime.now().difference(lastUpdate).inMinutes > 15;
+  }
+
+  Future<void> insertHorarios(List<Horario> horarios) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      await txn.delete('horario');
+
+      for (var horario in horarios) {
+        await txn.insert(
+          'horario',
+          {
+            'id': horario.id,
+            'usuario_id': horario.usuarioId,
+            'materia': horario.materia,
+            'aula': horario.aula,
+            'fecha_hora': horario.fechaHora.millisecondsSinceEpoch,
+            'ubicacion': horario.ubicacion,
+            'timestamp': DateTime.now().millisecondsSinceEpoch,
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+    });
+  }
+
+  Future<List<Horario>> getHorarios() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'horario',
+      orderBy: 'fecha_hora ASC',
+    );
+
+    return List.generate(maps.length, (i) {
+      return Horario(
+        id: maps[i]['id'] as int,
+        usuarioId: maps[i]['usuario_id'] as int,
+        materia: maps[i]['materia'] as String,
+        aula: maps[i]['aula'] as String,
+        fechaHora:
+            DateTime.fromMillisecondsSinceEpoch(maps[i]['fecha_hora'] as int),
+        ubicacion: maps[i]['ubicacion'] as String,
+      );
+    });
+  }
+
+  Future<bool> shouldRefreshHorario() async {
+    final db = await database;
+    final List<Map<String, dynamic>> result = await db.rawQuery('''
+      SELECT timestamp FROM horario ORDER BY timestamp DESC LIMIT 1
+    ''');
+
+    if (result.isEmpty) return true;
+
+    final lastUpdate =
+        DateTime.fromMillisecondsSinceEpoch(result.first['timestamp'] as int);
+    return DateTime.now().difference(lastUpdate).inMinutes > 15;
+  }
 }

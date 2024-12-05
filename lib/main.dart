@@ -2,6 +2,7 @@
 import 'package:draft1/database/database_helper.dart';
 import 'package:draft1/screens/deudas_screen.dart';
 import 'package:draft1/screens/eventos_screen.dart';
+import 'package:draft1/screens/horario_screen.dart';
 import 'package:draft1/screens/noticias_screen.dart';
 import 'package:draft1/screens/preseleccion_screen.dart';
 import 'package:draft1/screens/solicitudes_screen.dart';
@@ -9,6 +10,7 @@ import 'package:draft1/screens/tareas_screen.dart';
 import 'package:draft1/screens/videos_screen.dart';
 import 'package:draft1/services/api_service.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -22,6 +24,7 @@ import 'providers/user_provider.dart';
 void main() async {
   // Ensure Flutter bindings are initialized
   WidgetsFlutterBinding.ensureInitialized();
+  initializeDateFormatting("es_ES", null);
 
   // Initialize database
   await DatabaseHelper.initializeDatabase();
@@ -63,6 +66,7 @@ class MainApp extends StatelessWidget {
           '/tareas': (context) => const TareasScreen(),
           '/preseleccion': (context) => const PreseleccionScreen(),
           '/solicitudes': (context) => const SolicitudesScreen(),
+          '/horarios': (context) => const HorarioScreen(),
         },
       ),
     );

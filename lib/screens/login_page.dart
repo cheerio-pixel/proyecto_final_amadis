@@ -180,7 +180,7 @@ class _LoginPageState extends State<LoginPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Error al iniciar sesión. Por favor intente nuevamente.'),
+              content: Text('Error al iniciar sesión. Por favor intente nuevamente: $e'),
               backgroundColor: Colors.red,
             ),
           );

@@ -45,6 +45,7 @@ class ApiService {
       }
       return false;
     } catch (e) {
+      throw e;
       return false;
     }
   }
